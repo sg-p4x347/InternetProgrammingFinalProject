@@ -25,7 +25,12 @@ app.use(express.static('resources'));
 
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
+const SCOPES = ['https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive.appdata',
+    'https://www.googleapis.com/auth/drive.metadata',
+    'https://www.googleapis.com/auth/drive.photos.readonly',
+    'https://www.googleapis.com/auth/drive.readonly'
+];
 const TOKEN_PATH = 'token.json';
 
 // Load client secrets from a local file.
@@ -94,7 +99,7 @@ function getFolderIdRecursive(auth,parentID,folders,callback) {
 	console.log(folders.length);
 	if (folders.length > 0) {
 		listFiles(auth,`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`,function(files) {
-			if (files.length == 0) {
+			if (files.length === 0) {
 				let error = `Cannot find folder: ${folders[0]}`;
 				console.log(error);
 				callback(undefined,error);
@@ -138,7 +143,6 @@ function getFilesInFolder(auth,folderPath,callback) {
 		}
 	});
 }
-
 function startServer(auth) {
 	app.get('/drive/list', function(request, response) {
 		getFilesInFolder(auth,request.query.path ? request.query.path : "",function(files,error) {
@@ -147,14 +151,39 @@ function startServer(auth) {
 				body = error;
 			} else {
 				files.forEach((file) => {
-					body += file.name + '<br/>';
+					body += file.name + ", id: " + file.id + '<br/>';
 				});
 			}
 			response.send(body);
 		});
-	});
+    });
+    app.get('/drive/get', function (request, response) {
+        if (request.query.id) {
+            downloadFile(auth,request.query.id, function(path) {
+                response.sendFile(path);
+            });
+        }
+        response.send("Invalid ID");
+    });
 	const server = app.listen(3000, function() {
 		console.log(`Server started on port ${server.address().port}`);
 		
 	});
+}
+
+function downloadFile(auth,fileId,doneCallback) {
+    const drive = google.drive({ version: 'v3', auth });
+    let path = `./tmp/${fileId}.blob`;
+    let dest = fs.createWriteStream(path);
+    let promise = drive.files.get({
+        fileId: fileId
+    });
+
+    promise.on('end', function () {
+        console.log('Done');
+        doneCallback(path);
+    }).on('error', function (err) {
+        console.log('Error during download', err);
+        doneCallback(path, 'Error during download');
+    }).pipe(dest);
 }
