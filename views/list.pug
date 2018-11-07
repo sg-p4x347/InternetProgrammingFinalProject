@@ -1,0 +1,19 @@
+doctype html
+html
+	head
+		link(href="/css/list.css" rel="stylesheet" type="text/css")
+		script(src="/js/list.js" type="text/javascript")
+	body
+		div.list
+			each item in itemList
+				- let itemClick = `itemClick('${item.id}');`
+				- let viewBtnClick = `viewBtnClick(event,'${item.id}');`
+				div.list-item(onmousedown=itemClick)
+					
+					div.list-item-viewbtn(onmousedown=viewBtnClick) View
+					div.list-item-name #{item.name}
+					div.list-item-id #{item.id}
+					div.list-item-mime #{item.mimeType}
+					
+		
+		

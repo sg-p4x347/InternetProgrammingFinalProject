@@ -1,0 +1,54 @@
+﻿body,html {
+    width:100vw;
+    height:100vh;
+}
+.list {
+    display:flex;
+    flex-direction:column;
+    width:100%;
+    height:100%;
+}
+.list-item {
+    cursor:default;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    background-color: white;
+    padding: 16px;
+    border: 1px solid silver;
+    border-left-color:transparent;
+    border-right-color:transparent;
+    border-top-color:transparent;
+}
+.list-item:hover {
+    box-shadow:0 0 32px rgba(0,0,0,0.1) inset;
+    border: 1px solid silver;
+}
+.list-item:active {
+    background-color: #f0f2ff;
+}
+.list-item-name {
+    font-size: 1.5em;
+    font-family: Arial;
+    font-weight: bold;
+    width: 400px;
+}
+.list-item-id {
+    width: 400px;
+}
+.list-item-mime {
+    width: 400px;
+}
+.list-item-viewbtn {
+    margin-right:32px;
+    width:64px;
+    text-align:center;
+    cursor:default;
+    padding:8px;
+    border:1px solid silver;
+    border-radius:4px;
+    font-family:Arial;
+}
+.list-item-viewbtn:hover {
+    box-shadow: -1px -1px 1px rgba(0,0,0,0.1) inset;
+}
