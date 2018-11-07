@@ -24,7 +24,6 @@ app.set('views', 'views');
 // Configure middleware
 app.use(express.static('resources'));
 
-
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/drive.appdata',

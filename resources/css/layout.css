@@ -1,0 +1,39 @@
+body,html {
+	height:100vh;
+	width:100vw;
+}
+.btn {
+	text-align: center;
+	cursor: default;
+	padding: 8px;
+	border: 1px solid silver;
+	border-radius: 4px;
+	font-family: Arial;
+}
+.navbar {
+	width:100%;
+	height: 70px;
+	display:flex;
+	flex-direction:row;
+	align-items:center;
+	justify-content:flex-start;
+	background-color:black;
+}
+.navbar-item {
+	font-family:Arial;
+
+	display:flex;
+
+
+	font-size: 32px;
+	padding:4px;
+	padding-left:16px;
+	padding-right:16px;
+	color:white;
+	
+}
+.content-container {
+	height: calc(100% - 70px);
+	width:100%;
+	overflow-y:auto;
+}

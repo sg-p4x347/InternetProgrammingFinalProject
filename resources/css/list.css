@@ -1,6 +1,8 @@
 ﻿body,html {
+	margin:0;
     width:100vw;
     height:100vh;
+	box-sizing:border-box;
 }
 .list {
     display:flex;
@@ -12,7 +14,7 @@
     cursor:default;
     display: flex;
     flex-direction: row;
-    width: 100%;
+    width: calc(100% - 34px);
     background-color: white;
     padding: 16px;
     border: 1px solid silver;
