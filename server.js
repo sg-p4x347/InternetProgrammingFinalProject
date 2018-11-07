@@ -144,6 +144,9 @@ function getFilesInFolderById(id, callback) {
 }
 function startServer(auth) {
     drive = google.drive({ version: 'v3', auth });
+    app.get('/', function (request, response) {
+        response.render('infopage.pug');
+    });
     app.get('/drive/list', function (request, response) {
         let getHandler = request.query.id ?
             (callback) => getFilesInFolderById(request.query.id, callback) :
