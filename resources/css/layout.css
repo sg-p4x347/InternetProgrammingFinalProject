@@ -19,7 +19,7 @@ body, html {
 	flex-direction:row;
 	align-items:center;
 	justify-content:flex-start;
-	background-color:black;
+	background-color:white;
 }
 .navbar-item {
 	font-family:Arial;
@@ -31,9 +31,32 @@ body, html {
 	padding:4px;
 	padding-left:16px;
 	padding-right:16px;
-	color:white;
+	color:black;
+	
 	
 }
+.navbar-btn {
+	cursor: default;
+	border-radius: 8px;
+	border: 1px solid transparent;
+}
+.navbar-btn:hover {
+	box-shadow: 0 0 8px rgba(0,0,0,0.1) inset;
+}
+.navbar-btn:active {
+	border-color: silver;
+}
+.navbar-home {
+	height: 64px;
+	width: 64px;
+	padding: 2px;
+	background-color: white;
+	text-align: center;
+}
+.navbar-home img {
+	height:60px;
+}
+
 .content-container {
 	height: calc(100% - 70px);
 	width:100%;
