@@ -19,7 +19,7 @@ const { google } = require('googleapis');
 const request = require('request');
 
 const app = express();
-
+let userSessions = {};
 // configure Pug
 app.set('view engine', 'pug');
 app.set('views', 'views');
@@ -53,16 +53,17 @@ fs.readFile('credentials.json', (err, content) => {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials,userSession, callback) {
+function authorize(credentials, userSession, callback) {
+    
   const {client_secret, client_id, redirect_uris} = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
       client_id, client_secret, redirect_uris[0]);
 
   // Check if we have previously stored a token.
   //fs.readFile(TOKEN_PATH, (err, token) => {
-    if (!userSession.token) return getAccessToken(oAuth2Client,userSession, callback);
+    if (!userSessions[userSession.id]) return getAccessToken(oAuth2Client,userSession, callback);
     //oAuth2Client.setCredentials(userSession.token);
-    callback();
+    callback(userSessions[userSession.id]);
 }
 
 /**
@@ -71,32 +72,35 @@ function authorize(credentials,userSession, callback) {
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-function getAccessToken(oAuth2Client,userSession, callback) {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES
-  });
-  console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-  rl.question('Enter the code from that page here: ', (code) => {
-    rl.close();
-      oAuth2Client.getToken(code, (err, token) => {
-      if (err) return console.error('Error retrieving access token', err);
-      oAuth2Client.setCredentials(token);
-      // Store the token to disk for later program executions
-      //fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-      //  if (err) console.error(err);
-      //  console.log('Token stored to', TOKEN_PATH);
-      //});
-          // store token to session
-          userSession.token = token;
-          userSession.drive = google.drive({ version: 'v3', oAuth2Client });
-      callback();
+function getAccessToken(oAuth2Client,sessionData, callback) {
+    const authUrl = oAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: SCOPES
     });
-  });
+    console.log('Authorize this app by visiting this url:', authUrl);
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    rl.question('Enter the code from that page here: ', (code) => {
+        rl.close();
+            oAuth2Client.getToken(code, (err, token) => {
+            if (err) return console.error('Error retrieving access token', err);
+            oAuth2Client.setCredentials(token);
+            // Store the token to disk for later program executions
+            //fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+            //  if (err) console.error(err);
+            //  console.log('Token stored to', TOKEN_PATH);
+            //});
+            // store token to session
+            let userSession = {
+                token: token,
+                drive: google.drive({ version: 'v3', oAuth2Client })
+            };
+            userSessions[sessionData.id] = userSession;
+            callback(userSession);
+        });
+    });
 }
 
 
@@ -155,10 +159,10 @@ function startServer(credentials) {
         response.render('infopage.pug');
     });
     app.get('/drive/list', function (request, response) {
-        authorize(credentials, request.session, () => {
+        authorize(credentials, request.session, (userSession) => {
             let getHandler = request.query.id ?
-                (callback) => getFilesInFolderById(request.session,request.query.id, callback) :
-                (callback) => getFilesInFolderByPath(request.session,request.query.path, callback);
+                (callback) => getFilesInFolderById(userSession,request.query.id, callback) :
+                (callback) => getFilesInFolderByPath(userSession,request.query.path, callback);
             if (getHandler) {
                 getHandler((files, error) => {
                     if (error) {
