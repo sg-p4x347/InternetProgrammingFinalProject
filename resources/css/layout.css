@@ -58,7 +58,15 @@ body, html {
 }
 
 .content-container {
-	height: calc(100% - 70px);
+	height: calc(100% - 102px);
 	width:100%;
 	overflow-y:auto;
+}
+#logo{
+	width: 64px;
+	height: 64px;
+}
+.footer{
+	height: 32px;
+	width: 100%;
 }
