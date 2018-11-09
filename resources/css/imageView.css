@@ -1,0 +1,56 @@
+﻿div.content-container {
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background-color:#121212;
+	position:relative;
+	cursor:grab;
+	font-size:2em;
+	overflow:hidden;
+}
+.image {
+	pointer-events:none;
+}
+.image-controls {
+	z-index:1000;
+	position: absolute;
+	top: 0.5em;
+	right: 0.5em;
+	opacity: 0.1;
+	border-radius: 0.5em;
+	padding: 0.25em;
+	background-color:#232323;
+}
+.image-controls:hover {
+	opacity:1;
+}
+.image-control {
+	padding: 0.125em;
+	background-color: white;
+	border-radius: 1em;
+	height: 1em;
+	width: 1em;
+	box-shadow: 0 0 8px black;
+	opacity: 0.8;
+	color: black;
+	margin: 0.5em;
+	user-select: none;
+	transform-origin:50% 50%;
+	background-position:center;
+	background-size: 0.8em;
+	background-repeat:no-repeat;
+}
+.image-control:hover {
+	opacity:0.9;
+	transform:scale(1.05);
+}
+.image-control:active {
+	background-color:silver;
+	transform: scale(0.9);
+}
+.zoom-in {
+	background-image:url('/img/plus.png');
+}
+.zoom-out {
+	background-image: url('/img/minus.png');
+}

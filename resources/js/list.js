@@ -1,5 +1,6 @@
 function itemClick(id) {
-    let url = new URL(window.location.href);
+	let url = new URL(window.location.href);
+	url.pathname = "drive/get";
     url.searchParams.set("id", id);
     window.location.href = url;
 }

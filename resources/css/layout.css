@@ -3,6 +3,8 @@ body, html {
 	width: 100vw;
 	height: 100vh;
 	box-sizing: border-box;
+	font-family: Arial;
+	user-select: none;
 }
 .btn {
 	text-align: center;
@@ -20,12 +22,13 @@ body, html {
 	align-items:center;
 	justify-content:flex-start;
 	background-color:white;
+	border-bottom: 4px solid black;
 }
 .navbar-item {
 	font-family:Arial;
 
 	display:flex;
-
+	
 
 	font-size: 32px;
 	padding:4px;
@@ -35,13 +38,17 @@ body, html {
 	
 	
 }
+.navbar-item.right {
+	margin-left:auto;
+}
 .navbar-btn {
 	cursor: default;
 	border-radius: 8px;
 	border: 1px solid transparent;
+	text-decoration:none;
 }
 .navbar-btn:hover {
-	box-shadow: 0 0 8px rgba(0,0,0,0.1) inset;
+	box-shadow: -1px -1px 8px rgba(0,0,0,0.2) inset;
 }
 .navbar-btn:active {
 	border-color: silver;
@@ -56,17 +63,21 @@ body, html {
 .navbar-home img {
 	height:60px;
 }
+.navbar-title {
+	font-size:3em;
+	margin-left:auto;
+	margin-right:auto;
+	font-weight:bold;
+}
 
 .content-container {
-	height: calc(100% - 102px);
-	width:100%;
-	overflow-y:auto;
-}
-#logo{
-	width: 64px;
-	height: 64px;
+	height: calc(100% - 106px);
+	width: 100%;
+	overflow-y: auto;
 }
 .footer{
 	height: 32px;
 	width: 100%;
+	text-align:center;
+	font-size: 24px;
 }
