@@ -24,6 +24,11 @@
 			"pattern": "image",
 			"icon": "/img/image_32.png",
 			"view": "imageView.pug"
+		},
+		{
+			"pattern": "default",
+			"icon": "/img/file_32.png",
+			"view": "textViewer.pug"
 		}
 	]
 

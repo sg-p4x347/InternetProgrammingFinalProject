@@ -111,7 +111,6 @@ function getFolderIdRecursive(parentID,folders,callback) {
 	
 }
 
-
 function getFilesInFolderByPath(userSession,folderPath,callback) {
 	getFolderID(folderPath || "",function(id,error) {
 		if (error) {
@@ -154,6 +153,15 @@ function startServer(oAuth2) {
         });
     });
 	*/
+	//----------------------------------------------------------------
+	// Full View
+	app.get('/drive', function (request, response) {
+		authorize(oAuth2, request, response, () => {
+			response.render('list.pug');
+		});
+	});
+	//----------------------------------------------------------------
+	// Partial View
 	app.get('/drive/get', function (request, response) {
 		authorize(oAuth2, request, response, () => {
 			request.query.id = request.query.id || 'root';
@@ -173,6 +181,29 @@ function startServer(oAuth2) {
 					// get file model
 					getFile(request.session, request.query.id, (fileInstance) => {
 						response.render(mimeMapping.view, { file: fileInstance });
+					});
+				}
+			});
+		});
+	});
+	//----------------------------------------------------------------
+	// Partial View
+	app.get('/drive/treeNode', (request, response) => {
+		authorize(oAuth2, request, response, () => {
+			listFiles(request.session, `mimeType = 'application/vnd.google-apps.folder' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
+				if (error) {
+					response.render('error.pug', { error });
+				} else {
+					// determine which folders don't have any sub-folders
+					let semiphore = 0;
+					files.forEach((file) => {
+						semiphore++;
+						listFiles(request.session, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
+							file.hasSubDirectories = subFolders.length !== 0;
+							if (--semiphore === 0) {
+								response.render('treeNode', { itemList: files });
+							}
+						});
 					});
 				}
 			});
@@ -201,7 +232,7 @@ function getFile(userSession,id, callback) {
     getFileMeta(userSession,id, (meta) => {
         getFileContent(userSession,id, (streamBuffer) => {
             let content = '';
-            if (meta.mimeType.includes('image')) {
+            if (meta.mimeType && meta.mimeType.includes('image')) {
                 content = streamBuffer.toString('base64');
             } else {
                 content = streamBuffer.toString();
