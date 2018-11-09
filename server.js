@@ -13,23 +13,23 @@ const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+//const bodyParser = require('body-parser');
 
-const readline = require('readline');
 const { google } = require('googleapis');
 const request = require('request');
 
 const app = express();
-let userSessions = {};
 // configure Pug
 app.set('view engine', 'pug');
 app.set('views', 'views');
 
-// Configure middleware
+// Configure express
 app.use(express.static('resources'));
 app.use(cookieParser());
 app.use(session({ secret: "test fest" }));
 
-// If modifying these scopes, delete token.json.
+// Configure API resources
+
 const SCOPES = [
     'https://www.googleapis.com/auth/drive',
     'https://www.googleapis.com/auth/drive.appdata',
@@ -37,70 +37,55 @@ const SCOPES = [
     'https://www.googleapis.com/auth/drive.photos.readonly',
     'https://www.googleapis.com/auth/drive.readonly'
 ];
-const TOKEN_PATH = 'token.json';
-
+// Configure application resources
+const mimeMappings = JSON.parse(fs.readFileSync('./resources/json/mimeMappings.json'));
+function getMimeMapping(mimeType) {
+	let mapping = null;
+	for (let i = 0; i < mimeMappings["mimeMappings"].length; i++) {
+		mapping = mimeMappings["mimeMappings"][i];
+		let regex = new RegExp(mapping.pattern);
+		if (regex.test(mimeType)) return mapping;
+	}
+	// the last mapping is returned in no matches were found
+	return mapping;
+}
 // Load client secrets from a local file.
 fs.readFile('credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
   // Authorize a client with credentials, then call the Google Drive API.
-    startServer(JSON.parse(content));
-  //authorize(JSON.parse(content), startServer);
+	let credentials = JSON.parse(content);
+	const { client_secret, client_id, redirect_uris } = credentials.installed;
+	const oAuth2Client = new google.auth.OAuth2(
+		client_id, client_secret, redirect_uris[0]);
+	startServer(oAuth2Client);
 });
 
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
- */
-function authorize(credentials, userSession, callback) {
-    
-  const {client_secret, client_id, redirect_uris} = credentials.installed;
-  const oAuth2Client = new google.auth.OAuth2(
-      client_id, client_secret, redirect_uris[0]);
-
+function authorize(oAuth2, request,response, callback) {
   // Check if we have previously stored a token.
-  //fs.readFile(TOKEN_PATH, (err, token) => {
-    if (!userSessions[userSession.id]) return getAccessToken(oAuth2Client,userSession, callback);
-    //oAuth2Client.setCredentials(userSession.token);
-    callback(userSessions[userSession.id]);
+	if (!request.session.token) {
+		// display the authorization page
+		response.render('auth', { authUrl: getAuthorizationUrl(oAuth2) });
+	} else {
+		callback();
+	}
 }
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback for the authorized client.
- */
-function getAccessToken(oAuth2Client,sessionData, callback) {
-    const authUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: SCOPES
-    });
-    console.log('Authorize this app by visiting this url:', authUrl);
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    rl.question('Enter the code from that page here: ', (code) => {
-        rl.close();
-            oAuth2Client.getToken(code, (err, token) => {
-            if (err) return console.error('Error retrieving access token', err);
-            oAuth2Client.setCredentials(token);
-            // Store the token to disk for later program executions
-            //fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-            //  if (err) console.error(err);
-            //  console.log('Token stored to', TOKEN_PATH);
-            //});
-            // store token to session
-            let userSession = {
-                token: token,
-                drive: google.drive({ version: 'v3', oAuth2Client })
-            };
-            userSessions[sessionData.id] = userSession;
-            callback(userSession);
-        });
-    });
+
+function getAuthorizationUrl(oAuth2) {
+	const authUrl = oAuth2.generateAuthUrl({
+		access_type: 'offline',
+		scope: SCOPES
+	});
+	console.log('Authorize this app by visiting this url:', authUrl);
+	return authUrl;
+}
+function getAccessToken(oAuth2,code,callback) {
+	oAuth2.getToken(code, (err, token) => {
+		if (err) return console.error('Error retrieving access token', err);
+		oAuth2.setCredentials(token);
+		// store token to session
+		callback(token);
+	});
 }
 
 
@@ -125,21 +110,6 @@ function getFolderIdRecursive(parentID,folders,callback) {
 	}
 	
 }
-function listFiles(userSession,query,callback) {
-  
-  userSession.drive.files.list({
-    pageSize: 100,
-    fields: 'nextPageToken, files(id, name, mimeType)',
-	q: query
-  }, (err, res) => {
-    if (err) {
-		console.log('The API returned an error: ' + err);
-		callback([],err);
-	} else {
-		callback(res.data.files);
-	}
-  });
-}
 
 
 function getFilesInFolderByPath(userSession,folderPath,callback) {
@@ -154,15 +124,22 @@ function getFilesInFolderByPath(userSession,folderPath,callback) {
 function getFilesInFolderById(userSession,id, callback) {
     listFiles(userSession,`'${id}' in parents and trashed = false`, callback);
 }
-function startServer(credentials) {
+function startServer(oAuth2) {
     app.get('/', function (request, response) {
         response.render('infopage.pug');
-    });
+	});
+	app.get('/drive/auth', function (request, response) {
+		getAccessToken(oAuth2, request.query.code, (token) => {
+			request.session.token = token;
+			response.redirect('back');
+		});
+	});
+	/*
     app.get('/drive/list', function (request, response) {
-        authorize(credentials, request.session, (userSession) => {
+		authorize(oAuth2,request,response, () => {
             let getHandler = request.query.id ?
-                (callback) => getFilesInFolderById(userSession,request.query.id, callback) :
-                (callback) => getFilesInFolderByPath(userSession,request.query.path, callback);
+				(callback) => getFilesInFolderById(request.session,request.query.id, callback) :
+				(callback) => getFilesInFolderByPath(request.session,request.query.path, callback);
             if (getHandler) {
                 getHandler((files, error) => {
                     if (error) {
@@ -174,19 +151,37 @@ function startServer(credentials) {
             } else {
                 response.render('error', { error });
             }
-
         });
-        
     });
-    app.get('/drive/get', function (request, response) {
-        if (request.query.id) {
-            getFile(request.session,request.query.id, (fileInstance) => {
-                response.render('homepage', { file: fileInstance });
-            });
-        } else {
-            response.render('error', { error:'Please provide a query parameter' });
-        }
-    });
+	*/
+	app.get('/drive/get', function (request, response) {
+		authorize(oAuth2, request, response, () => {
+			request.query.id = request.query.id || 'root';
+			getFileMeta(request.session, request.query.id, (fileMeta) => {
+				let mimeMapping = getMimeMapping(fileMeta.mimeType);
+				if (fileMeta.mimeType === 'application/vnd.google-apps.folder') {
+					// get folder model
+					getFilesInFolderById(request.session, request.query.id, (files, error) => {
+						if (error) {
+							response.render('error.pug', { error });
+						} else {
+							files.forEach((file) => file.icon = getMimeMapping(file.mimeType).icon);
+							response.render(mimeMapping.view, { itemList: files});
+						}
+					});
+				} else {
+					// get file model
+					getFile(request.session, request.query.id, (fileInstance) => {
+						response.render(mimeMapping.view, { file: fileInstance });
+					});
+				}
+			});
+		});
+	});
+	app.get('/drive/logout', (request, response) => {
+		request.session.token = null;
+		response.redirect('/');
+	});
 	const server = app.listen(3000, function() {
 		console.log(`Server started on port ${server.address().port}`);
 	});
@@ -240,4 +235,25 @@ function getFileContent(userSession,id, callback) {
     }, (err, res, bodyStream) => {
         callback(new Buffer(bodyStream));
     });
+}
+function listFiles(userSession, query, callback) {
+
+	request({
+		url: 'https://www.googleapis.com/drive/v3/files',
+		qs: {
+			pageSize: 100,
+			fields: 'nextPageToken, files(id, name, mimeType)',
+			q: query
+		},
+		headers: {
+			'Authorization': 'Bearer ' + userSession.token.access_token
+		}
+	}, (err, res, body) => {
+		if (err) {
+			console.log('The API returned an error: ' + err);
+			callback([], err);
+		} else {
+			callback(JSON.parse(body).files);
+		}
+	});
 }

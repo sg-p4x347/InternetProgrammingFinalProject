@@ -2,15 +2,18 @@ doctype html
 html
 	head
 		block styles
-		block scripts
 		link(href="/css/flex.css" rel="stylesheet" type="text/css")
 		link(href="/css/layout.css" rel="stylesheet" type="text/css")
+		link(href="/css/form.css" rel="stylesheet" type="text/css")
+		block scripts
 	body
 		div.navbar
-			div.navbar-home.navbar-btn
+			a(href="/").navbar-home.navbar-btn
 				img(src="/img/logo.png")
-			div.navbar-item.navbar-btn Google Drive
-			div.navbar-item.navbar-btn Join Us
+			a(href="/drive/get").navbar-item.navbar-btn Google Drive
+			a(href="/join").navbar-item.navbar-btn Join Us
+			div.navbar-title Omega Gaming
+			a(href="/drive/logout").navbar-item.navbar-btn Logout
 		div.content-container
 			block content
 		div.footer

@@ -6,16 +6,18 @@
     height:100%;
 }
 .list-item {
-    cursor:default;
-    display: flex;
-    flex-direction: row;
-    width: calc(100% - 34px);
-    background-color: white;
-    padding: 16px;
-    border: 1px solid silver;
-    border-left-color:transparent;
-    border-right-color:transparent;
-    border-top-color:transparent;
+	flex-shrink:0;
+	cursor: default;
+	display: flex;
+	flex-direction: row;
+	
+	width: calc(100% - 34px);
+	background-color: white;
+	padding: 8px;
+	border: 1px solid silver;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	border-top-color: transparent;
 }
 .list-item:hover {
     background-color:#fafafa;
@@ -24,6 +26,10 @@
 .list-item:active {
 	background-color: #f0f2ff;
 	border: 1px solid silver;
+}
+.list-item-icon {
+	height:100%;
+	margin-right:32px;
 }
 .list-item-name {
     font-size: 1.5em;

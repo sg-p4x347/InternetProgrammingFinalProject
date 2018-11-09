@@ -1,0 +1,24 @@
+﻿.form-control {
+	font-size: 1em;
+	padding: 0.5em;
+	border-radius:0.25em;
+	background-color:white;
+	outline: none;
+	border: 1px solid silver;
+	box-shadow: 0 0 16px rgba(0,0,0,0.1) inset;
+}
+.form-control:hover {
+	border-color:silver;
+}
+.form-control:active {
+	border-color:#95beff;
+}
+form button[type=submit] {
+	font-size: 1em;
+	padding: 0.25em;
+	border-radius: 0.25em;
+	font-family: Arial;
+	color: black;
+	border: 1px solid silver;
+	background-color: white;
+}

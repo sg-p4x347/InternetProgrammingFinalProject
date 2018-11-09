@@ -1,0 +1,9 @@
+extends layout.pug
+block styles
+	style.
+		p {
+			padding:1em;
+			white-space:pre;
+		}
+block content
+	p #{file.content}

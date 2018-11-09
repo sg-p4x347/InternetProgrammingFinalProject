@@ -1,0 +1,30 @@
+{
+	"mimeMappings": [
+		{
+			"pattern": "application/vnd.google-apps.folder",
+			"icon": "/img/folder_32.png",
+			"view": "list.pug"
+		},
+		{
+			"pattern": "text/html",
+			"icon": "/img/html_32.png",
+			"view": "htmlViewer.pug"
+		},
+		{
+			"pattern": "text",
+			"icon": "/img/file_32.png",
+			"view": "textViewer.pug"
+		},
+		{
+			"pattern": "application/json",
+			"icon": "/img/file_32.png",
+			"view": "textViewer.pug"
+		},
+		{
+			"pattern": "image",
+			"icon": "/img/image_32.png",
+			"view": "imageView.pug"
+		}
+	]
+
+}
