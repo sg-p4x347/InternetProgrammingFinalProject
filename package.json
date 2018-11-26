@@ -9,8 +9,11 @@
     "express-session": "^1.15.6",
     "fs": "^0.0.1-security",
     "googleapis": "^27.0.0",
+    "passport": "^0.4.0",
+    "passport-twitter": "^1.0.4",
     "pug": "^2.0.3",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "twit": "^2.2.11"
   },
   "devDependencies": {},
   "scripts": {
