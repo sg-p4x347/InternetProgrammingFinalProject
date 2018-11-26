@@ -1,5 +1,35 @@
 'use strict';
-//herrowwwwwwww
+
+//Twitter setup stuff
+const Twit = require('twit');
+let T = null;
+let passport = require('passport');
+let TwitterStrategy = require('passport-twitter').Strategy;
+passport.use(new TwitterStrategy({
+	consumerKey: 'JgZkkpOMzKIpz37icpzyuXqt3',
+	consumerSecret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
+	callbackURL: "http://localhost:3000/join"
+},
+	function (token, tokenSecret, profile, cb) {
+		User.findOrCreate({ twitterId: profile.id }, function (err, user) {
+			user.twit = new Twit({
+				consumer_key: 'JgZkkpOMzKIpz37icpzyuXqt3',
+				consumer_secret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
+				access_token: token,
+				access_token_secret: tokenSecret,
+			})
+			return cb(err, user);
+		});
+	}
+));
+passport.serializeUser(function (user, callback) {
+	return callback(null, user.profile);
+})
+passport.deserializeUser(function (obj, callback) {
+	return callback(null, obj);
+})
+
+
 /*
 
 NODE QUICKSTART
@@ -26,6 +56,8 @@ app.set('views', 'views');
 // Configure express
 app.use(express.static('resources'));
 app.use(cookieParser());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(session({ secret: "test fest" }));
 
 // Configure API resources
@@ -133,6 +165,28 @@ function startServer(oAuth2) {
 			response.redirect('back');
 		});
 	});
+
+	app.get('/join', passport.authenticate('twitter', {
+		failureRedirect: '/twitter/login'
+	}), (request, response) => {
+
+		});
+	app.get('/twitter/login', passport.authenticate('twitter'));
+	app.post('/twitter/auth', passport.authenticate('twitter', {
+		failureRedirect: '/twitter/login',
+		successRedirect: '/join'
+	}))
+	app.get('/tweet', (request, response) => {
+		let T = new Twit({
+			consumer_key: 'JgZkkpOMzKIpz37icpzyuXqt3',
+			consumer_secret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
+			access_token: request.session["oauth:twitter"].oauth_token,
+			access_token_secret: request.session["oauth:twitter"].oauth_token_secret
+		})
+		T.post('statuses/update', { status: request.query.TweetData }, function (err, data, response) {
+			console.log(data)
+		})
+	})
 	/*
     app.get('/drive/list', function (request, response) {
 		authorize(oAuth2,request,response, () => {
