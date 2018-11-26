@@ -194,17 +194,20 @@ function startServer(oAuth2) {
 				if (error) {
 					response.render('error.pug', { error });
 				} else {
+					let getChildren = function (fileIndex) {
+						if (fileIndex >= files.length) {
+							response.render('treeNode', { itemList: files });
+						} else {
+							let file = files[fileIndex];
+							listFiles(request.session, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
+								file.hasSubDirectories = subFolders.length !== 0;
+								getChildren(++fileIndex);
+							});
+						}
+					};
 					// determine which folders don't have any sub-folders
-					let semiphore = 0;
-					files.forEach((file) => {
-						semiphore++;
-						listFiles(request.session, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
-							file.hasSubDirectories = subFolders.length !== 0;
-							if (--semiphore === 0) {
-								response.render('treeNode', { itemList: files });
-							}
-						});
-					});
+					getChildren(0);
+					
 				}
 			});
 		});
@@ -217,6 +220,7 @@ function startServer(oAuth2) {
 		console.log(`Server started on port ${server.address().port}`);
 	});
 }
+
 class File {
     constructor(meta, content) {
         for (let metaProp in meta) {
