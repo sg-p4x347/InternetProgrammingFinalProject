@@ -2,26 +2,24 @@
 
 //Twitter setup stuff
 const Twit = require('twit');
-let T = null;
 let passport = require('passport');
 let TwitterStrategy = require('passport-twitter').Strategy;
+let T = new Twit({
+				consumer_key: 'JgZkkpOMzKIpz37icpzyuXqt3',
+				consumer_secret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
+				access_token: '1064614241141997568-YrcDjQb0LcJHYvx3BkbP4WGhnaaP8C',
+				access_token_secret: 'XwGJL1YYyvo6FUzAoNnssloa0PFecNUgr9lBPnWGCRbW5',
+			})
 passport.use(new TwitterStrategy({
 	consumerKey: 'JgZkkpOMzKIpz37icpzyuXqt3',
 	consumerSecret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
 	callbackURL: "http://localhost:3000/join"
 },
 	function (token, tokenSecret, profile, cb) {
-		User.findOrCreate({ twitterId: profile.id }, function (err, user) {
-			user.twit = new Twit({
-				consumer_key: 'JgZkkpOMzKIpz37icpzyuXqt3',
-				consumer_secret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
-				access_token: token,
-				access_token_secret: tokenSecret,
-			})
-			return cb(err, user);
-		});
+		return (cb(null, profile));
 	}
 ));
+
 passport.serializeUser(function (user, callback) {
 	return callback(null, user.profile);
 })
@@ -166,10 +164,8 @@ function startServer(oAuth2) {
 		});
 	});
 
-	app.get('/join', passport.authenticate('twitter', {
-		failureRedirect: '/twitter/login'
-	}), (request, response) => {
-
+	app.get('/join', (request, response) => {
+		response.render('join.pug');
 		});
 	app.get('/twitter/login', passport.authenticate('twitter'));
 	app.post('/twitter/auth', passport.authenticate('twitter', {
@@ -177,15 +173,8 @@ function startServer(oAuth2) {
 		successRedirect: '/join'
 	}))
 	app.get('/tweet', (request, response) => {
-		let T = new Twit({
-			consumer_key: 'JgZkkpOMzKIpz37icpzyuXqt3',
-			consumer_secret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
-			access_token: request.session["oauth:twitter"].oauth_token,
-			access_token_secret: request.session["oauth:twitter"].oauth_token_secret
-		})
-		T.post('statuses/update', { status: request.query.TweetData }, function (err, data, response) {
-			console.log(data)
-		})
+		T.post('statuses/update', { status: request.query.TweetData }, function (err, data, response) { });
+		response.redirect('/join');
 	})
 	/*
     app.get('/drive/list', function (request, response) {
