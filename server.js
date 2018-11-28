@@ -395,14 +395,18 @@ function getFolderStructure(user, callback) {
 			// add children based on parent relationships
 			for (let id in fileMap) {
 				let child = fileMap[id];
-				child.parents.forEach((parentID) => {
-					let parent = fileMap[parentID];
-					if (parent) {
-						parent.children.push(child);
-					} else {
-						root.push(child);
-					}
-				});
+				if (child.parents) {
+					child.parents.forEach((parentID) => {
+						let parent = fileMap[parentID];
+						if (parent) {
+							parent.children.push(child);
+						} else {
+							root.push(child);
+						}
+					});
+				} else {
+					root.push(child);
+				}
 			}
 			callback(root);
 		}
