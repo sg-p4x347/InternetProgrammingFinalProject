@@ -18,5 +18,9 @@ function toggleTreeNode(id, evt) {
 		}
 	}
 }
+function treeNodeClick(id, evt) {
+	if (evt) evt.stopPropagation();
+	itemClick(id);
+}
 // bootstrap the tree from the root
 toggleTreeNode('root');

@@ -1,0 +1,6 @@
+div.list
+	each item in itemList
+		- let itemClick = `itemClick('${item.id}');`
+		div.list-item(onclick=itemClick)
+			img(src=item.icon).list-item-icon
+			div.list-item-name #{item.name}

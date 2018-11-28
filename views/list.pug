@@ -1,24 +1,21 @@
 extends layout.pug
+include treeNode.pug
 block styles
 	link(href="/css/list.css" rel="stylesheet" type="text/css")
+	link(href="/css/imageView.css" rel="stylesheet" type="text/css")
 block scripts
 	script(src="/js/list.js" type="text/javascript")
 	script(src="/js/tree.js" type="text/javascript")
+	script(src="/js/imageView.js" type="text/javascript")
 block content
 	div.tree-list-container
 		div.tree
-			div(id="root").tree-item.expandable
-				div.tree-item-header
-					img(src="/img/google-drive.svg")
-					div.tree-item-name My Drive
+			+treeNode([{id:'root',name:'My Drive',hasSubDirectories:true,img:'/img/google-drive.svg'}])
 
 				
-		div.list
-			each item in itemList
-				- let itemClick = `itemClick('${item.id}');`
-				div.list-item(onclick=itemClick)
-					img(src=item.icon).list-item-icon
-					div.list-item-name #{item.name}
+		div.viewport
+			
+			
 					
 		
 		

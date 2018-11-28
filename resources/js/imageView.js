@@ -1,5 +1,8 @@
+function getImageViewer() {
+	return document.querySelector('.image-viewer');
+}
 function zoom(percentage, origin) {
-	let viewport = document.querySelector('.content-container');
+	let viewport = getImageViewer();
 	let image = document.getElementById('image');
 	image.style.width = image.clientWidth * percentage + 'px';
 	// default origin to the center of the viewport
@@ -18,7 +21,7 @@ function zoom(percentage, origin) {
 	setImagePos(image, imageOrigin.x, imageOrigin.y);
 }
 function zoomToFit() {
-	let viewport = document.querySelector('.content-container');
+	let viewport = getImageViewer();
 	let image = document.getElementById('image');
 
 	let aspectRatio = image.clientWidth / image.clientHeight;
@@ -37,7 +40,7 @@ function setImagePos(image, x, y) {
 }
 function initialize() {
 	zoomToFit();
-	let viewport = document.querySelector('.content-container');
+	let viewport = getImageViewer();
 	let image = document.getElementById('image');
 	// initialize scroll to zoom handler (mouse wheel)
 	viewport.addEventListener('wheel', (evt) => {
