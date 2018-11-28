@@ -6,6 +6,11 @@ body, html {
 	font-family: Arial;
 	user-select: none;
 }
+body {
+	background-image: url("../img/FB.png");
+	background-size: cover;
+	background-position: top;
+}
 .btn {
 	text-align: center;
 	cursor: default;
