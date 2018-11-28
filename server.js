@@ -133,7 +133,7 @@ fs.readFile('credentials.json', (err, content) => {
 //}
 function authorize(request, response,next) {
 	if (!request.isAuthenticated()) {
-		response.redirect('/drive/auth');
+		response.redirect('/drive/login');
 	} else {
 		next();
 	}
@@ -246,20 +246,15 @@ function startServer(oAuth2) {
 	//----------------------------------------------------------------
 	// Full View
 	app.get('/drive',
+		authorize,
 		(request, response) => {
 			response.render('list.pug');
 		}
 	);
-	//app.get('/drive', function (request, response) {
-	//	authorize(oAuth2, request, response, () => {
-	//		response.render('list.pug');
-	//	});
-	//});
 	//----------------------------------------------------------------
 	// Partial View
 	app.get('/drive/get',
 		(request, response) => {
-		//authorize(oAuth2, request, response, () => {
 			request.query.id = request.query.id || 'root';
 			getFileMeta(request.user, request.query.id, (fileMeta) => {
 				let mimeMapping = getMimeMapping(fileMeta.mimeType);
@@ -280,31 +275,36 @@ function startServer(oAuth2) {
 					});
 				}
 			});
-		//});
 	});
 	//----------------------------------------------------------------
 	// Partial View
+	function populateNode(node) {
+
+	}
+	app.get('/drive/tree', (request, response) => {
+		getFolderStructure(request.user, (root) => {
+			response.render('tree.pug', { rootNodes: root });
+		});
+	});
 	app.get('/drive/treeNode', (request, response) => {
-		//authorize(oAuth2, request, response, () => {
-			listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
-				if (error) {
-					response.render('error.pug', { error });
-				} else {
-					// determine which folders don't have any sub-folders
-					let semiphore = 0;
-					files.forEach((file) => {
-						semiphore++;
-						listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
-							file.hasSubDirectories = subFolders.length !== 0;
-							file.img = "/img/folder_32.png";
-							if (--semiphore === 0) {
-								response.render('treeNodePartial.pug', { itemList: files });
-							}
-						});
+		listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
+			if (error) {
+				response.render('error.pug', { error });
+			} else {
+				// determine which folders don't have any sub-folders
+				let semiphore = 0;
+				files.forEach((file) => {
+					semiphore++;
+					listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
+						file.hasSubDirectories = subFolders.length !== 0;
+						file.img = "/img/folder_32.png";
+						if (--semiphore === 0) {
+							response.render('treeNodePartial.pug', { itemList: files });
+						}
 					});
-				}
-			});
-		//});
+				});
+			}
+		});
 	});
 	app.get('/drive/logout', (request, response) => {
 		request.logout();
@@ -363,6 +363,50 @@ function getFileContent(user,id, callback) {
     }, (err, res, bodyStream) => {
         callback(new Buffer(bodyStream));
     });
+}
+function getFolderStructure(user, callback) {
+	request({
+		url: 'https://www.googleapis.com/drive/v3/files',
+		pageSize: 300,
+		qs: {
+			fields: 'files(id, name, mimeType, parents)',
+			q: `mimeType = 'application/vnd.google-apps.folder' and trashed = false`
+		},
+		headers: {
+			'Authorization': 'Bearer ' + user.token
+		}
+	}, (err, res, body) => {
+		if (err) {
+			console.log('The API returned an error: ' + err);
+			callback([], err);
+		} else {
+			let files = JSON.parse(body).files;
+			// create a root array
+			let root = [];
+			
+			// map the files by id
+			let fileMap = {};
+			files.forEach((file) => {
+				file.children = [];
+				let mimeMapping = getMimeMapping(file.mimeType);
+				file.img = mimeMapping.icon;
+				fileMap[file.id] = file;
+			});
+			// add children based on parent relationships
+			for (let id in fileMap) {
+				let child = fileMap[id];
+				child.parents.forEach((parentID) => {
+					let parent = fileMap[parentID];
+					if (parent) {
+						parent.children.push(child);
+					} else {
+						root.push(child);
+					}
+				});
+			}
+			callback(root);
+		}
+	});
 }
 function listFiles(user, query, callback) {
 

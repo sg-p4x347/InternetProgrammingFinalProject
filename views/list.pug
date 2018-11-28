@@ -1,5 +1,4 @@
 extends layout.pug
-include treeNode.pug
 block styles
 	link(href="/css/list.css" rel="stylesheet" type="text/css")
 	link(href="/css/imageView.css" rel="stylesheet" type="text/css")
@@ -10,9 +9,6 @@ block scripts
 block content
 	div.tree-list-container
 		div.tree
-			+treeNode([{id:'root',name:'My Drive',hasSubDirectories:true,img:'/img/google-drive.svg'}])
-
-				
 		div.viewport
 			
 			

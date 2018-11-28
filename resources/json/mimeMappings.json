@@ -1,6 +1,10 @@
 {
 	"mimeMappings": [
 		{
+			"pattern": "drive",
+			"icon": "/img/google-drive.svg"
+		},
+		{
 			"pattern": "application/vnd.google-apps.folder",
 			"icon": "/img/folder_32.png",
 			"view": "list.pug"
