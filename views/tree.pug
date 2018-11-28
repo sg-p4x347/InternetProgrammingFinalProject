@@ -1,0 +1,16 @@
+mixin treeNode(node)
+	- let toggleTreeNode = `toggleTreeNode('${node.id}',event);`
+	- let treeNodeClick = `treeNodeClick('${node.id}',event);`
+	div.tree-item(id=node.id onclick=toggleTreeNode class= node.children.length ? "expandable" : "")
+		div(onclick=treeNodeClick).tree-item-header
+			img(src=node.img)
+			div.tree-item-name #{node.name}
+		each child in node.children
+			+treeNode(child)
+
++treeNode({
+	children:rootNodes,
+	img:"/img/google-drive.svg",
+	id:"root",
+	name:"My Drive"
+})
