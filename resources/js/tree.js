@@ -22,5 +22,16 @@ function treeNodeClick(id, evt) {
 	if (evt) evt.stopPropagation();
 	itemClick(id);
 }
-// bootstrap the tree from the root
-toggleTreeNode('root');
+(function () {
+	let parent = document.querySelector('.tree');
+	let url = new URL(window.location.href);
+	url.pathname = "/drive/tree";
+	fetch(url).then((response) => {
+		response.text().then((text) => {
+			parent.innerHTML += text;
+			// bootstrap the tree from the root
+			toggleTreeNode('root');
+		});
+		
+	});
+})();

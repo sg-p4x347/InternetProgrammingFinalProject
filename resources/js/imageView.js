@@ -44,7 +44,7 @@ function initialize() {
 	let image = document.getElementById('image');
 	// initialize scroll to zoom handler (mouse wheel)
 	viewport.addEventListener('wheel', (evt) => {
-		zoom(1 + evt.wheelDeltaY / 1000, { x: evt.offsetX, y: evt.offsetY });
+		zoom(1 - evt.deltaY / 1000, { x: evt.offsetX, y: evt.offsetY });
 	});
 	// initialize zoom to fit handler (middle mouse button)
 	viewport.addEventListener('mousedown', (evt) => {
