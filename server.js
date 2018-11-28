@@ -58,11 +58,11 @@ app.use(session({
 	saveUninitialized:false
 }));
 app.use(express.json());
-//app.use(
-//	express.urlencoded({
-//		extended: true
-//	})
-//);
+app.use(
+	express.urlencoded({
+		extended: true
+	})
+);
 // cookie-parser
 app.use(cookieParser());
 // passport
@@ -73,8 +73,9 @@ let GoogleStrategy = require('passport-google-oauth2').Strategy;
 passport.use(new GoogleStrategy({
 	clientID: '1007788475567-lmecccpb1t4o94jtfj313mufdg0me6p4.apps.googleusercontent.com',
 	clientSecret: 'L0RoQgrU8nYkdSFjGEU3ycLB',
-	callbackURL: "http://localhost:3000/drive",
+	callbackURL: "http://localhost:3000/drive/login/callback",
 	passReqToCallback: true
+
 },
 function (request,accessToken, refreshToken, profile, callback) {
 	callback(null, {
@@ -87,7 +88,7 @@ passport.serializeUser(function (user, callback) {
 });
 passport.deserializeUser(function (json, callback) {
 	return callback(null, JSON.parse(json));
-})
+});
 // Configure API resources
 
 const SCOPES = [
@@ -238,9 +239,13 @@ function startServer(oAuth2) {
 	app.get('/drive/login', passport.authenticate('google', {
 		scope: SCOPES
 	}));
+	app.get('/drive/login/callback', passport.authenticate('google', {
+		successRedirect: '/drive',
+		failureRedirect: '/drive/login'
+	}));
 	//----------------------------------------------------------------
 	// Full View
-	app.get('/drive', passport.authenticate('google'),
+	app.get('/drive',
 		(request, response) => {
 			response.render('list.pug');
 		}
