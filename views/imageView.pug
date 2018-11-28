@@ -1,9 +1,4 @@
-extends layout
-block styles
-	link(href="/css/imageView.css" rel="stylesheet" type="text/css")
-block scripts
-	script(src="/js/imageView.js" type="text/javascript")
-block content
+div.image-viewer
 	div.image-controls.row
 		div(onclick="zoom(1.2)").image-control.zoom-in.flex-center
 		div(onclick="zoom(0.8)").image-control.zoom-out.flex-center

@@ -1,7 +1,8 @@
-each child in itemList
-	- let toggleTreeNode = `toggleTreeNode('${child.id}',event);`
-	div.tree-item(id=child.id onclick=toggleTreeNode class= child.hasSubDirectories ? "expandable" : "")
-		div.tree-item-header
-			img(src="/img/folder_32.png")
-			div.tree-item-name #{child.name}
-		
+mixin treeNode(itemList)
+	each child in itemList
+		- let toggleTreeNode = `toggleTreeNode('${child.id}',event);`
+		- let treeNodeClick = `treeNodeClick('${child.id}',event);`
+		div.tree-item(id=child.id onclick=toggleTreeNode class= child.hasSubDirectories ? "expandable" : "")
+			div(onclick=treeNodeClick).tree-item-header
+				img(src=child.img)
+				div.tree-item-name #{child.name}
