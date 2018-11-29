@@ -36,6 +36,7 @@ const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const drive = require('./modules/drive/index.js');
 //const cookieSession = require('cookie-session');
 
 //const bodyParser = require('body-parser');
@@ -99,18 +100,6 @@ const SCOPES = [
 	'https://www.googleapis.com/auth/drive.photos.readonly',
 	'https://www.googleapis.com/auth/drive.readonly'
 ];
-// Configure application resources
-const mimeMappings = JSON.parse(fs.readFileSync('./resources/json/mimeMappings.json'));
-function getMimeMapping(mimeType) {
-	let mapping = null;
-	for (let i = 0; i < mimeMappings["mimeMappings"].length; i++) {
-		mapping = mimeMappings["mimeMappings"][i];
-		let regex = new RegExp(mapping.pattern);
-		if (regex.test(mimeType)) return mapping;
-	}
-	// the last mapping is returned in no matches were found
-	return mapping;
-}
 // Load client secrets from a local file.
 fs.readFile('credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
@@ -163,7 +152,7 @@ function getFolderID(drivePath,callback) {
 }
 function getFolderIdRecursive(parentID,folders,callback) {
 	if (folders.length > 0) {
-		listFiles(`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`,function(files) {
+		drive.listFiles(`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`,function(files) {
 			if (files.length === 0) {
 				let error = `Cannot find folder: ${folders[0]}`;
 				console.log(error);
@@ -189,7 +178,7 @@ function getFilesInFolderByPath(userSession,folderPath,callback) {
 	});
 }
 function getFilesInFolderById(userSession,id, callback) {
-    listFiles(userSession,`'${id}' in parents and trashed = false`, callback);
+    drive.listFiles(userSession,`'${id}' in parents and trashed = false`, callback);
 }
 function startServer(oAuth2) {
     app.get('/', function (request, response) {
@@ -256,21 +245,21 @@ function startServer(oAuth2) {
 	app.get('/drive/get',
 		(request, response) => {
 			request.query.id = request.query.id || 'root';
-			getFileMeta(request.user, request.query.id, (fileMeta) => {
-				let mimeMapping = getMimeMapping(fileMeta.mimeType);
+			drive.getFileMeta(request.user, request.query.id, (fileMeta) => {
+				let mimeMapping = drive.getMimeMapping(fileMeta.mimeType);
 				if (fileMeta.mimeType === 'application/vnd.google-apps.folder') {
 					// get folder model
 					getFilesInFolderById(request.user, request.query.id, (files, error) => {
 						if (error) {
 							response.render('error.pug', { error });
 						} else {
-							files.forEach((file) => file.icon = getMimeMapping(file.mimeType).icon);
+							files.forEach((file) => file.icon = drive.getMimeMapping(file.mimeType).icon);
 							response.render('fileList.pug', { itemList: files });
 						}
 					});
 				} else {
 					// get file model
-					getFile(request.user, request.query.id, (fileInstance) => {
+					drive.getFile(request.user, request.query.id, (fileInstance) => {
 						response.render(mimeMapping.view, { file: fileInstance });
 					});
 				}
@@ -282,12 +271,12 @@ function startServer(oAuth2) {
 
 	}
 	app.get('/drive/tree', (request, response) => {
-		getFolderStructure(request.user, (root) => {
+		drive.getFolderStructure(request.user, (root) => {
 			response.render('tree.pug', { rootNodes: root });
 		});
 	});
 	app.get('/drive/treeNode', (request, response) => {
-		listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
+		drive.listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
 			if (error) {
 				response.render('error.pug', { error });
 			} else {
@@ -295,7 +284,7 @@ function startServer(oAuth2) {
 				let semiphore = 0;
 				files.forEach((file) => {
 					semiphore++;
-					listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
+					drive.listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
 						file.hasSubDirectories = subFolders.length !== 0;
 						file.img = "/images/folder_32.png";
 						if (--semiphore === 0) {
@@ -312,124 +301,5 @@ function startServer(oAuth2) {
 	});
 	const server = app.listen(3000, function() {
 		console.log(`Server started on port ${server.address().port}`);
-	});
-}
-class File {
-    constructor(meta, content) {
-        for (let metaProp in meta) {
-            this[metaProp] = meta[metaProp];
-        }
-        this.content = content;
-    }
-    createImageUrl() {
-        return `data:${this.mimeType};base64,${this.content}`;
-    }
-}
-function getFile(user,id, callback) {
-	getFileMeta(user,id, (meta) => {
-		getFileContent(user,id, (streamBuffer) => {
-            let content = '';
-            if (meta.mimeType && meta.mimeType.includes('image')) {
-                content = streamBuffer.toString('base64');
-            } else {
-                content = streamBuffer.toString();
-            }
-            callback(new File(meta, content));
-        });
-    });
-}
-
-function getFileMeta(user,id, callback) {
-    let url = 'https://www.googleapis.com/drive/v3/files/' + id;
-    request({
-        url: url,
-        method: 'GET',
-        headers: {
-			'Authorization': 'Bearer ' + user.token
-        }
-    }, (err,res,body) => callback(JSON.parse(body)));
-
-}
-function getFileContent(user,id, callback) {
-    let url = 'https://www.googleapis.com/drive/v3/files/' + id;
-    request({
-        url: url,
-        qs: {alt:'media'},
-        method: 'GET',
-        encoding: null,
-        headers: {
-			'Authorization': 'Bearer ' + user.token
-        }
-    }, (err, res, bodyStream) => {
-        callback(new Buffer(bodyStream));
-    });
-}
-function getFolderStructure(user, callback) {
-	request({
-		url: 'https://www.googleapis.com/drive/v3/files',
-		pageSize: 300,
-		qs: {
-			fields: 'files(id, name, mimeType, parents)',
-			q: `mimeType = 'application/vnd.google-apps.folder' and trashed = false`
-		},
-		headers: {
-			'Authorization': 'Bearer ' + user.token
-		}
-	}, (err, res, body) => {
-		if (err) {
-			console.log('The API returned an error: ' + err);
-			callback([], err);
-		} else {
-			let files = JSON.parse(body).files;
-			// create a root array
-			let root = [];
-			
-			// map the files by id
-			let fileMap = {};
-			files.forEach((file) => {
-				file.children = [];
-				let mimeMapping = getMimeMapping(file.mimeType);
-				file.img = mimeMapping.icon;
-				fileMap[file.id] = file;
-			});
-			// add children based on parent relationships
-			for (let id in fileMap) {
-				let child = fileMap[id];
-				if (child.parents) {
-					child.parents.forEach((parentID) => {
-						let parent = fileMap[parentID];
-						if (parent) {
-							parent.children.push(child);
-						} else {
-							root.push(child);
-						}
-					});
-				} else {
-					root.push(child);
-				}
-			}
-			callback(root);
-		}
-	});
-}
-function listFiles(user, query, callback) {
-
-	request({
-		url: 'https://www.googleapis.com/drive/v3/files',
-		qs: {
-			pageSize: 100,
-			fields: 'nextPageToken, files(id, name, mimeType)',
-			q: query
-		},
-		headers: {
-			'Authorization': 'Bearer ' + user.token
-		}
-	}, (err, res, body) => {
-		if (err) {
-			console.log('The API returned an error: ' + err);
-			callback([], err);
-		} else {
-			callback(JSON.parse(body).files);
-		}
 	});
 }
