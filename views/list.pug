@@ -1,4 +1,5 @@
 extends layout.pug
+include treeNode.pug
 block styles
 	link(href="/css/list.css" rel="stylesheet" type="text/css")
 	link(href="/css/imageView.css" rel="stylesheet" type="text/css")
@@ -8,7 +9,11 @@ block scripts
 	script(src="/js/imageView.js" type="text/javascript")
 block content
 	div.tree-list-container
-		div.tree
+		div.tree.expanded
+			div.toggle-collapse(onclick="toggleTreeCollapse();")
+			+treeNode([
+				{id:'root',name:'My Drive',hasSubDirectories:true,img:'/images/google-drive.svg'}
+			])
 		div.viewport
 			
 			

@@ -128,64 +128,29 @@ function authorize(request, response,next) {
 	}
 }
 
-function getAuthorizationUrl(oAuth2) {
-	const authUrl = oAuth2.generateAuthUrl({
-		access_type: 'offline',
-		scope: SCOPES
-	});
-	console.log('Authorize this app by visiting this url:', authUrl);
-	return authUrl;
-}
-function getAccessToken(oAuth2,code,callback) {
-	oAuth2.getToken(code, (err, token) => {
-		if (err) return console.error('Error retrieving access token', err);
-		oAuth2.setCredentials(token);
-		// store token to session
-		callback(token);
-	});
-}
+//function getAuthorizationUrl(oAuth2) {
+//	const authUrl = oAuth2.generateAuthUrl({
+//		access_type: 'offline',
+//		scope: SCOPES
+//	});
+//	console.log('Authorize this app by visiting this url:', authUrl);
+//	return authUrl;
+//}
+//function getAccessToken(oAuth2,code,callback) {
+//	oAuth2.getToken(code, (err, token) => {
+//		if (err) return console.error('Error retrieving access token', err);
+//		oAuth2.setCredentials(token);
+//		// store token to session
+//		callback(token);
+//	});
+//}
 
 
-function getFolderID(drivePath,callback) {
-	let folders = drivePath.length > 0 ? drivePath.split('/') : [];
-	getFolderIdRecursive('root',folders,callback);
-}
-function getFolderIdRecursive(parentID,folders,callback) {
-	if (folders.length > 0) {
-		drive.listFiles(`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`,function(files) {
-			if (files.length === 0) {
-				let error = `Cannot find folder: ${folders[0]}`;
-				console.log(error);
-				callback(undefined,error);
-			} else {
-				// take the first one
-				getFolderIdRecursive(files[0].id,folders.slice(1,folders.length),callback);
-			}
-		});
-	} else {
-		callback(parentID);
-	}
-	
-}
 
-function getFilesInFolderByPath(userSession,folderPath,callback) {
-	getFolderID(folderPath || "",function(id,error) {
-		if (error) {
-			callback([],error);
-		} else {
-            getFilesInFolderById(userSession,id, callback);
-		}
-	});
-}
-function getFilesInFolderById(userSession,id, callback) {
-    drive.listFiles(userSession,`'${id}' in parents and trashed = false`, callback);
-}
 function startServer(oAuth2) {
     app.get('/', function (request, response) {
         response.render('infopage.pug');
 	});
-	
-
 	app.get('/join', (request, response) => {
 		response.render('join.pug');
 		});
@@ -198,33 +163,6 @@ function startServer(oAuth2) {
 		T.post('statuses/update', { status: request.query.TweetData }, function (err, data, response) { });
 		response.redirect('/join');
 	});
-	/*
-    app.get('/drive/list', function (request, response) {
-		authorize(oAuth2,request,response, () => {
-            let getHandler = request.query.id ?
-				(callback) => getFilesInFolderById(request.session,request.query.id, callback) :
-				(callback) => getFilesInFolderByPath(request.session,request.query.path, callback);
-            if (getHandler) {
-                getHandler((files, error) => {
-                    if (error) {
-                        response.render('error', { error });
-                    } else {
-                        response.render('list', { itemList: files });
-                    }
-                });
-            } else {
-                response.render('error', { error });
-            }
-        });
-    });
-	*/
-	//app.get('/drive/auth',
-	//function (request, response) {
-	//	getAccessToken(oAuth2, request.query.code, (token) => {
-	//		request.session.token = token;
-	//		response.redirect('back');
-	//	});
-	//});
 	app.get('/drive/login', passport.authenticate('google', {
 		scope: SCOPES
 	}));
@@ -243,13 +181,14 @@ function startServer(oAuth2) {
 	//----------------------------------------------------------------
 	// Partial View
 	app.get('/drive/get',
+		authorize,
 		(request, response) => {
 			request.query.id = request.query.id || 'root';
 			drive.getFileMeta(request.user, request.query.id, (fileMeta) => {
 				let mimeMapping = drive.getMimeMapping(fileMeta.mimeType);
 				if (fileMeta.mimeType === 'application/vnd.google-apps.folder') {
 					// get folder model
-					getFilesInFolderById(request.user, request.query.id, (files, error) => {
+					drive.getFilesInFolderById(request.user, request.query.id, (files, error) => {
 						if (error) {
 							response.render('error.pug', { error });
 						} else {
@@ -267,28 +206,34 @@ function startServer(oAuth2) {
 	});
 	//----------------------------------------------------------------
 	// Partial View
-	function populateNode(node) {
-
-	}
-	app.get('/drive/tree', (request, response) => {
+	app.get('/drive/tree',
+		authorize,
+		(request, response) => {
 		drive.getFolderStructure(request.user, (root) => {
 			response.render('tree.pug', { rootNodes: root });
 		});
 	});
 	app.get('/drive/treeNode', (request, response) => {
-		drive.listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
+		let mimeType = 'application/vnd.google-apps.folder';
+		let mimeMapping = drive.getMimeMapping(mimeType);
+		drive.listFiles(request.user, `mimeType = '${mimeType}' and '${request.query.id}' in parents and trashed = false`, (files,error) => {
 			if (error) {
 				response.render('error.pug', { error });
 			} else {
 				// determine which folders don't have any sub-folders
 				let semiphore = 0;
-				files.forEach((file) => {
+				files.some((file) => {
 					semiphore++;
-					drive.listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
-						file.hasSubDirectories = subFolders.length !== 0;
-						file.img = "/images/folder_32.png";
-						if (--semiphore === 0) {
-							response.render('treeNodePartial.pug', { itemList: files });
+					drive.listFiles(request.user, `mimeType = '${mimeType}' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
+						if (error) {
+							response.render('error.pug', { error });
+							response.end();
+						} else {
+							file.hasSubDirectories = subFolders && subFolders.length !== 0;
+							file.img = mimeMapping.icon;
+							if (--semiphore === 0) {
+								response.render('treeNodePartial.pug', { itemList: files });
+							}
 						}
 					});
 				});
