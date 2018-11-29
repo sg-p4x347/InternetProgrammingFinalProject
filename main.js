@@ -13,11 +13,11 @@ let T = new Twit({
 passport.use(new TwitterStrategy({
 	consumerKey: 'JgZkkpOMzKIpz37icpzyuXqt3',
 	consumerSecret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
-	callbackURL: "http://localhost:3000/join"
+	callbackURL: 'http://localhost:3000/join'
 },
-	function (token, tokenSecret, profile, cb) {
-		return (cb(null, profile));
-	}
+function (token, tokenSecret, profile, cb) {
+	return (cb(null, profile));
+}
 ));
 
 
@@ -74,7 +74,7 @@ let GoogleStrategy = require('passport-google-oauth2').Strategy;
 passport.use(new GoogleStrategy({
 	clientID: '1007788475567-lmecccpb1t4o94jtfj313mufdg0me6p4.apps.googleusercontent.com',
 	clientSecret: 'L0RoQgrU8nYkdSFjGEU3ycLB',
-	callbackURL: "http://localhost:3000/drive/login/callback",
+	callbackURL: 'http://localhost:3000/drive/login/callback',
 	passReqToCallback: true
 
 },
@@ -102,8 +102,8 @@ const SCOPES = [
 ];
 // Load client secrets from a local file.
 fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Google Drive API.
+	if (err) {return console.log('Error loading client secret file:', err);}
+	// Authorize a client with credentials, then call the Google Drive API.
 	let credentials = JSON.parse(content);
 	const { client_secret, client_id, redirect_uris } = credentials.installed;
 	const oAuth2Client = new google.auth.OAuth2(
@@ -148,12 +148,12 @@ function authorize(request, response,next) {
 
 
 function startServer(oAuth2) {
-    app.get('/', function (request, response) {
-        response.render('infopage.pug');
+	app.get('/', function (request, response) {
+		response.render('infopage.pug');
 	});
 	app.get('/join', (request, response) => {
 		response.render('join.pug');
-		});
+	});
 	app.get('/twitter/login', passport.authenticate('twitter'));
 	app.post('/twitter/auth', passport.authenticate('twitter', {
 		failureRedirect: '/twitter/login',
@@ -203,16 +203,16 @@ function startServer(oAuth2) {
 					});
 				}
 			});
-	});
+		});
 	//----------------------------------------------------------------
 	// Partial View
 	app.get('/drive/tree',
 		authorize,
 		(request, response) => {
-		drive.getFolderStructure(request.user, (root) => {
-			response.render('tree.pug', { rootNodes: root });
+			drive.getFolderStructure(request.user, (root) => {
+				response.render('tree.pug', { rootNodes: root });
+			});
 		});
-	});
 	app.get('/drive/treeNode', (request, response) => {
 		let mimeType = 'application/vnd.google-apps.folder';
 		let mimeMapping = drive.getMimeMapping(mimeType);

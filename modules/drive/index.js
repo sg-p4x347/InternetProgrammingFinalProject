@@ -8,7 +8,7 @@ function getMimeMapping(mimeType) {
 	for (let i = 0; i < mimeMappings['mimeMappings'].length; i++) {
 		mapping = mimeMappings['mimeMappings'][i];
 		let regex = new RegExp(mapping.pattern);
-		if (regex.test(mimeType)) { return mapping; }
+		if (regex.test(mimeType)) {return mapping;}
 	}
 	// the last mapping is returned in no matches were found
 	return mapping;
@@ -23,6 +23,39 @@ class File {
 	createImageUrl() {
 		return `data:${this.mimeType};base64,${this.content}`;
 	}
+}
+function getFolderID(drivePath, callback) {
+	let folders = drivePath.length > 0 ? drivePath.split('/') : [];
+	getFolderIdRecursive('root', folders, callback);
+}
+function getFolderIdRecursive(parentID, folders, callback) {
+	if (folders.length > 0) {
+		listFiles(`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`, function (files) {
+			if (files.length === 0) {
+				let error = `Cannot find folder: ${folders[0]}`;
+				console.log(error);
+				callback(undefined, error);
+			} else {
+				// take the first one
+				getFolderIdRecursive(files[0].id, folders.slice(1, folders.length), callback);
+			}
+		});
+	} else {
+		callback(parentID);
+	}
+}
+
+function getFilesInFolderByPath(user, folderPath, callback) {
+	getFolderID(folderPath || '', function (id, error) {
+		if (error) {
+			callback([], error);
+		} else {
+			getFilesInFolderById(user, id, callback);
+		}
+	});
+}
+function getFilesInFolderById(user, id, callback) {
+	listFiles(user, `'${id}' in parents and trashed = false`, callback);
 }
 function getFile(user, id, callback) {
 	getFileMeta(user, id, (meta) => {
@@ -64,62 +97,47 @@ function getFileContent(user, id, callback) {
 	});
 }
 function getFolderStructure(user, callback) {
-	request({
-		url: 'https://www.googleapis.com/drive/v3/files',
-		pageSize: 300,
-		qs: {
-			fields: 'files(id, name, mimeType, parents)',
-			q: 'mimeType = \'application/vnd.google-apps.folder\' and trashed = false'
-		},
-		headers: {
-			'Authorization': 'Bearer ' + user.token
-		}
-	}, (err, res, body) => {
-		if (err) {
-			console.log('The API returned an error: ' + err);
-			callback([], err);
-		} else {
-			let files = JSON.parse(body).files;
-			// create a root array
-			let root = [];
-
-			// map the files by id
-			let fileMap = {};
-			files.forEach((file) => {
-				file.children = [];
-				let mimeMapping = getMimeMapping(file.mimeType);
-				file.img = mimeMapping.icon;
-				fileMap[file.id] = file;
-			});
-			// add children based on parent relationships
-			for (let id in fileMap) {
-				let child = fileMap[id];
-				if (child.parents) {
-					child.parents.forEach((parentID) => {
-						let parent = fileMap[parentID];
-						if (parent) {
-							parent.children.push(child);
-						} else {
-							root.push(child);
-						}
-					});
-				} else {
-					root.push(child);
-				}
+	listFiles(user, 'mimeType = \'application/vnd.google-apps.folder\' and trashed = false', (files) => {
+		// create a root array
+		let root = [];
+		// map the files by id
+		let fileMap = {};
+		files.forEach((file) => {
+			file.children = [];
+			let mimeMapping = getMimeMapping(file.mimeType);
+			file.img = mimeMapping.icon;
+			fileMap[file.id] = file;
+		});
+		// add children based on parent relationships
+		for (let id in fileMap) {
+			let child = fileMap[id];
+			if (child.parents) {
+				child.parents.forEach((parentID) => {
+					let parent = fileMap[parentID];
+					if (parent) {
+						parent.children.push(child);
+					} else {
+						root.push(child);
+					}
+				});
+			} else {
+				root.push(child);
 			}
-			callback(root);
 		}
+		callback(root);
+
 	});
 }
-function listFiles(user, query, callback) {
-
+function listFiles(user, query, callback, pageToken) {
+	let qs = {
+		pageSize: 1000,
+		fields: 'nextPageToken, files(id, name, mimeType, parents)',
+		q: query
+	};
+	if (pageToken) {qs.pageToken = pageToken;}
 	request({
 		url: 'https://www.googleapis.com/drive/v3/files',
-		qs: {
-			pageSize: 100,
-			fields: 'nextPageToken, files(id, name, mimeType)',
-			q: query
-		},
+		qs: qs,
 		headers: {
 			'Authorization': 'Bearer ' + user.token
 		}
@@ -128,7 +146,19 @@ function listFiles(user, query, callback) {
 			console.log('The API returned an error: ' + err);
 			callback([], err);
 		} else {
-			callback(JSON.parse(body).files);
+			let responseObj = JSON.parse(body);
+			if (responseObj.error) {
+				callback([], responseObj.error.errors[0].message);
+			} else {
+				let files = responseObj.files;
+				if (responseObj.nextPageToken) {
+					listFiles(user, query, (nextFiles) => {
+						callback(files.concat(nextFiles));
+					}, responseObj.nextPageToken);
+				} else {
+					callback(files);
+				}
+			}
 		}
 	});
 }
@@ -138,5 +168,7 @@ module.exports = {
 	getFileMeta: getFileMeta,
 	getFolderStructure: getFolderStructure,
 	listFiles: listFiles,
-	getMimeMapping: getMimeMapping
+	getFilesInFolderById,
+	getMimeMapping: getMimeMapping,
+	getFilesInFolderByPath: getFilesInFolderByPath
 };

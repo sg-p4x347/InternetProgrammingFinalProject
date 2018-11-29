@@ -1,10 +1,11 @@
+'use strict';
 (function () {
 	itemClick('root');
 })();
 function itemClick(id) {
 	let url = new URL(window.location.href);
-	url.pathname = "drive/get";
-	url.searchParams.set("id", id);
+	url.pathname = 'drive/get';
+	url.searchParams.set('id', id);
 
 	const ajax = new XMLHttpRequest();
 	ajax.open('GET', url);
@@ -21,9 +22,9 @@ function itemClick(id) {
 	//});
 }
 function viewBtnClick(evt, id) {
-    evt.stopPropagation();
-    let url = new URL(window.location.href);
-    url.pathname = "drive/get";
-    url.searchParams.set("id", id);
-    window.location.href = url;
+	evt.stopPropagation();
+	let url = new URL(window.location.href);
+	url.pathname = 'drive/get';
+	url.searchParams.set('id', id);
+	window.location.href = url;
 }

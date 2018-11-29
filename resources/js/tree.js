@@ -1,5 +1,6 @@
+'use strict';
 function toggleTreeNode(id, evt) {
-	if (evt) evt.stopPropagation();
+	if (evt) {evt.stopPropagation();}
 	let parent = document.getElementById(id);
 	if (parent.classList.contains('expandable')) {
 		if (parent.classList.contains('expanded')) {
@@ -9,8 +10,8 @@ function toggleTreeNode(id, evt) {
 			// get child nodes from server
 			if (parent.children.length === 1) {
 				let url = new URL(window.location.href);
-				url.pathname = "/drive/treeNode";
-				url.searchParams.set("id", id);
+				url.pathname = '/drive/treeNode';
+				url.searchParams.set('id', id);
 				const ajax = new XMLHttpRequest();
 				ajax.open('GET', url);
 
@@ -37,11 +38,11 @@ function toggleTreeCollapse() {
 	}
 }
 function treeNodeClick(id, evt) {
-	if (evt) evt.stopPropagation();
+	if (evt) {evt.stopPropagation();}
 	// deselect the current selection
 	let currentItem = document.querySelector('.tree .tree-item.selected');
 
-	if (currentItem) currentItem.classList.remove('selected');
+	if (currentItem) {currentItem.classList.remove('selected');}
 	// select the new item
 	let newItem = document.getElementById(id);
 	newItem.classList.add('selected');
