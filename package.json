@@ -2,7 +2,7 @@
   "name": "vs-final",
   "version": "1.0.0",
   "description": "Package for CSC365-301 Final Project",
-  "main": "server.js",
+  "main": "main.js",
   "dependencies": {
     "cookie-parser": "^1.4.3",
     "cookie-session": "^2.0.0-beta.3",
