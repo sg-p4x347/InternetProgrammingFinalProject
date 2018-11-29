@@ -27,7 +27,7 @@
 	height:32px;
 }
 .tree-item.expandable {
-	background-image: url('/img/right_16.png');
+	background-image: url('/images/right_16.png');
 }
 .tree-item-header {
 	display:flex;
@@ -40,7 +40,7 @@
 	margin-left: 1em;
 }
 .tree-item.expanded {
-	background-image:url('/img/down_16.png');
+	background-image:url('/images/down_16.png');
 }
 .tree-item > .tree-item {
 	display:none;

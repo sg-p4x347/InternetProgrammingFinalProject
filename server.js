@@ -297,7 +297,7 @@ function startServer(oAuth2) {
 					semiphore++;
 					listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
 						file.hasSubDirectories = subFolders.length !== 0;
-						file.img = "/img/folder_32.png";
+						file.img = "/images/folder_32.png";
 						if (--semiphore === 0) {
 							response.render('treeNodePartial.pug', { itemList: files });
 						}

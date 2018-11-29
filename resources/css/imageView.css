@@ -51,8 +51,8 @@
 	transform: scale(0.9);
 }
 .zoom-in {
-	background-image:url('/img/plus_32.png');
+	background-image:url('/images/plus_32.png');
 }
 .zoom-out {
-	background-image: url('/img/minus_32.png');
+	background-image: url('/images/minus_32.png');
 }

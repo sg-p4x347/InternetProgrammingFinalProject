@@ -2,36 +2,36 @@
 	"mimeMappings": [
 		{
 			"pattern": "drive",
-			"icon": "/img/google-drive.svg"
+			"icon": "/images/google-drive.svg"
 		},
 		{
 			"pattern": "application/vnd.google-apps.folder",
-			"icon": "/img/folder_32.png",
+			"icon": "/images/folder_32.png",
 			"view": "list.pug"
 		},
 		{
 			"pattern": "text/html",
-			"icon": "/img/html_32.png",
+			"icon": "/images/html_32.png",
 			"view": "htmlViewer.pug"
 		},
 		{
 			"pattern": "text",
-			"icon": "/img/file_32.png",
+			"icon": "/images/file_32.png",
 			"view": "textViewer.pug"
 		},
 		{
 			"pattern": "application/json",
-			"icon": "/img/file_32.png",
+			"icon": "/images/file_32.png",
 			"view": "textViewer.pug"
 		},
 		{
 			"pattern": "image",
-			"icon": "/img/image_32.png",
+			"icon": "/images/image_32.png",
 			"view": "imageView.pug"
 		},
 		{
 			"pattern": "default",
-			"icon": "/img/file_32.png",
+			"icon": "/images/file_32.png",
 			"view": "textViewer.pug"
 		}
 	]

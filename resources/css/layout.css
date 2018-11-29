@@ -7,7 +7,7 @@ body, html {
 	user-select: none;
 }
 body {
-	background-image: url("../img/FB.png");
+	background-image: url("../images/FB.png");
 	background-size: cover;
 	background-position: top;
 }
