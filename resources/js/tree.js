@@ -1,5 +1,6 @@
+'use strict';
 function toggleTreeNode(id, evt) {
-	if (evt) evt.stopPropagation();
+	if (evt) {evt.stopPropagation();}
 	let parent = document.getElementById(id);
 	if (parent.classList.contains('expandable')) {
 		if (parent.classList.contains('expanded')) {
@@ -9,8 +10,8 @@ function toggleTreeNode(id, evt) {
 			// get child nodes from server
 			if (parent.children.length === 1) {
 				let url = new URL(window.location.href);
-				url.pathname = "/drive/treeNode";
-				url.searchParams.set("id", id);
+				url.pathname = '/drive/treeNode';
+				url.searchParams.set('id', id);
 				fetch(url).then((response) => {
 					response.text().then((text) => parent.innerHTML += text);
 				});
@@ -19,13 +20,13 @@ function toggleTreeNode(id, evt) {
 	}
 }
 function treeNodeClick(id, evt) {
-	if (evt) evt.stopPropagation();
+	if (evt) {evt.stopPropagation();}
 	itemClick(id);
 }
 (function () {
 	let parent = document.querySelector('.tree');
 	let url = new URL(window.location.href);
-	url.pathname = "/drive/tree";
+	url.pathname = '/drive/tree';
 	fetch(url).then((response) => {
 		response.text().then((text) => {
 			parent.innerHTML += text;

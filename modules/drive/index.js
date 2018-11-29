@@ -1,13 +1,14 @@
+'use strict';
 const request = require('request');
 const fs = require('fs');
 // Configure application resources
 const mimeMappings = JSON.parse(fs.readFileSync('./resources/json/mimeMappings.json'));
 function getMimeMapping(mimeType) {
 	let mapping = null;
-	for (let i = 0; i < mimeMappings["mimeMappings"].length; i++) {
-		mapping = mimeMappings["mimeMappings"][i];
+	for (let i = 0; i < mimeMappings['mimeMappings'].length; i++) {
+		mapping = mimeMappings['mimeMappings'][i];
 		let regex = new RegExp(mapping.pattern);
-		if (regex.test(mimeType)) return mapping;
+		if (regex.test(mimeType)) { return mapping; }
 	}
 	// the last mapping is returned in no matches were found
 	return mapping;
@@ -68,7 +69,7 @@ function getFolderStructure(user, callback) {
 		pageSize: 300,
 		qs: {
 			fields: 'files(id, name, mimeType, parents)',
-			q: `mimeType = 'application/vnd.google-apps.folder' and trashed = false`
+			q: 'mimeType = \'application/vnd.google-apps.folder\' and trashed = false'
 		},
 		headers: {
 			'Authorization': 'Bearer ' + user.token

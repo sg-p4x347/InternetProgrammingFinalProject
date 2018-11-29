@@ -13,11 +13,11 @@ let T = new Twit({
 passport.use(new TwitterStrategy({
 	consumerKey: 'JgZkkpOMzKIpz37icpzyuXqt3',
 	consumerSecret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
-	callbackURL: "http://localhost:3000/join"
+	callbackURL: 'http://localhost:3000/join'
 },
-	function (token, tokenSecret, profile, cb) {
-		return (cb(null, profile));
-	}
+function (token, tokenSecret, profile, cb) {
+	return (cb(null, profile));
+}
 ));
 
 
@@ -42,7 +42,7 @@ const drive = require('./modules/drive/index.js');
 //const bodyParser = require('body-parser');
 
 const { google } = require('googleapis');
-const request = require('request');
+//const request = require('request');
 
 const app = express();
 // configure Pug
@@ -74,7 +74,7 @@ let GoogleStrategy = require('passport-google-oauth2').Strategy;
 passport.use(new GoogleStrategy({
 	clientID: '1007788475567-lmecccpb1t4o94jtfj313mufdg0me6p4.apps.googleusercontent.com',
 	clientSecret: 'L0RoQgrU8nYkdSFjGEU3ycLB',
-	callbackURL: "http://localhost:3000/drive/login/callback",
+	callbackURL: 'http://localhost:3000/drive/login/callback',
 	passReqToCallback: true
 
 },
@@ -102,8 +102,8 @@ const SCOPES = [
 ];
 // Load client secrets from a local file.
 fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Google Drive API.
+	if (err) {return console.log('Error loading client secret file:', err);}
+	// Authorize a client with credentials, then call the Google Drive API.
 	let credentials = JSON.parse(content);
 	const { client_secret, client_id, redirect_uris } = credentials.installed;
 	const oAuth2Client = new google.auth.OAuth2(
@@ -128,74 +128,74 @@ function authorize(request, response,next) {
 	}
 }
 
-function getAuthorizationUrl(oAuth2) {
-	const authUrl = oAuth2.generateAuthUrl({
-		access_type: 'offline',
-		scope: SCOPES
-	});
-	console.log('Authorize this app by visiting this url:', authUrl);
-	return authUrl;
-}
-function getAccessToken(oAuth2,code,callback) {
-	oAuth2.getToken(code, (err, token) => {
-		if (err) return console.error('Error retrieving access token', err);
-		oAuth2.setCredentials(token);
-		// store token to session
-		callback(token);
-	});
-}
+//function getAuthorizationUrl(oAuth2) {
+//	const authUrl = oAuth2.generateAuthUrl({
+//		access_type: 'offline',
+//		scope: SCOPES
+//	});
+//	console.log('Authorize this app by visiting this url:', authUrl);
+//	return authUrl;
+//}
+//function getAccessToken(oAuth2,code,callback) {
+//	oAuth2.getToken(code, (err, token) => {
+//		if (err) {return console.error('Error retrieving access token', err);}
+//		oAuth2.setCredentials(token);
+//		// store token to session
+//		callback(token);
+//	});
+//}
 
 
-function getFolderID(drivePath,callback) {
-	let folders = drivePath.length > 0 ? drivePath.split('/') : [];
-	getFolderIdRecursive('root',folders,callback);
-}
-function getFolderIdRecursive(parentID,folders,callback) {
-	if (folders.length > 0) {
-		drive.listFiles(`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`,function(files) {
-			if (files.length === 0) {
-				let error = `Cannot find folder: ${folders[0]}`;
-				console.log(error);
-				callback(undefined,error);
-			} else {
-				// take the first one
-				getFolderIdRecursive(files[0].id,folders.slice(1,folders.length),callback);
-			}
-		});
-	} else {
-		callback(parentID);
-	}
+//function getFolderID(drivePath,callback) {
+//	let folders = drivePath.length > 0 ? drivePath.split('/') : [];
+//	getFolderIdRecursive('root',folders,callback);
+//}
+//function getFolderIdRecursive(parentID,folders,callback) {
+//	if (folders.length > 0) {
+//		drive.listFiles(`mimeType = 'application/vnd.google-apps.folder' and name = '${folders[0]}' and '${parentID}' in parents and trashed = false`,function(files) {
+//			if (files.length === 0) {
+//				let error = `Cannot find folder: ${folders[0]}`;
+//				console.log(error);
+//				callback(undefined,error);
+//			} else {
+//				// take the first one
+//				getFolderIdRecursive(files[0].id,folders.slice(1,folders.length),callback);
+//			}
+//		});
+//	} else {
+//		callback(parentID);
+//	}
 	
-}
+//}
 
-function getFilesInFolderByPath(userSession,folderPath,callback) {
-	getFolderID(folderPath || "",function(id,error) {
-		if (error) {
-			callback([],error);
-		} else {
-            getFilesInFolderById(userSession,id, callback);
-		}
-	});
-}
+//function getFilesInFolderByPath(userSession,folderPath,callback) {
+//	getFolderID(folderPath || '',function(id,error) {
+//		if (error) {
+//			callback([],error);
+//		} else {
+//			getFilesInFolderById(userSession,id, callback);
+//		}
+//	});
+//}
 function getFilesInFolderById(userSession,id, callback) {
-    drive.listFiles(userSession,`'${id}' in parents and trashed = false`, callback);
+	drive.listFiles(userSession,`'${id}' in parents and trashed = false`, callback);
 }
-function startServer(oAuth2) {
-    app.get('/', function (request, response) {
-        response.render('infopage.pug');
+function startServer() {
+	app.get('/', function (request, response) {
+		response.render('infopage.pug');
 	});
 	
 
 	app.get('/join', (request, response) => {
 		response.render('join.pug');
-		});
+	});
 	app.get('/twitter/login', passport.authenticate('twitter'));
 	app.post('/twitter/auth', passport.authenticate('twitter', {
 		failureRedirect: '/twitter/login',
 		successRedirect: '/join'
 	}));
 	app.get('/tweet', (request, response) => {
-		T.post('statuses/update', { status: request.query.TweetData }, function (err, data, response) { });
+		T.post('statuses/update', { status: request.query.TweetData }, function () { });
 		response.redirect('/join');
 	});
 	/*
@@ -264,12 +264,12 @@ function startServer(oAuth2) {
 					});
 				}
 			});
-	});
+		});
 	//----------------------------------------------------------------
 	// Partial View
-	function populateNode(node) {
+	//function populateNode(node) {
 
-	}
+	//}
 	app.get('/drive/tree', (request, response) => {
 		drive.getFolderStructure(request.user, (root) => {
 			response.render('tree.pug', { rootNodes: root });
@@ -284,9 +284,9 @@ function startServer(oAuth2) {
 				let semiphore = 0;
 				files.forEach((file) => {
 					semiphore++;
-					drive.listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
+					drive.listFiles(request.user, `mimeType = 'application/vnd.google-apps.folder' and '${file.id}' in parents and trashed = false`, (subFolders) => {
 						file.hasSubDirectories = subFolders.length !== 0;
-						file.img = "/images/folder_32.png";
+						file.img = '/images/folder_32.png';
 						if (--semiphore === 0) {
 							response.render('treeNodePartial.pug', { itemList: files });
 						}

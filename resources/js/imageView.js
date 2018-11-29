@@ -1,3 +1,4 @@
+'use strict';
 function getImageViewer() {
 	return document.querySelector('.image-viewer');
 }
