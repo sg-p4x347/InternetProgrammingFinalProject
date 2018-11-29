@@ -73,6 +73,19 @@ form {
 	border: 1px solid transparent;
 	text-decoration:none;
 }
+.navbar-divider {
+	border-left:1px solid black;
+	height:calc(100% - 16px);
+	width:0px;
+	margin:8px;
+}
+.navbar-btn.drive-btn {
+	background-image:url('../images/drive.png');
+	background-repeat:no-repeat;
+	background-position:left;
+	background-size:56px;
+	padding-left:64px;
+}
 .navbar-btn:hover {
 	box-shadow: -1px -1px 8px rgba(0,0,0,0.2) inset;
 }
