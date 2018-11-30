@@ -65,6 +65,8 @@ function initialize() {
 		}
 	});
 	// aesthetics
-	viewport.addEventListener('mousedown', (evt) => viewport.style.cursor = 'grabbing');
-	window.addEventListener('mouseup', (evt) => viewport.style.removeProperty('cursor'));
+	viewport.addEventListener('mousedown', () => viewport.style.cursor = 'grabbing');
+	window.addEventListener('mouseup', () => viewport.style.removeProperty('cursor'));
 }
+//Shut up eslint
+initialize;

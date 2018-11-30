@@ -37,15 +37,10 @@ const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const drive = require('./modules/drive/index.js');
-//const cookieSession = require('cookie-session');
-
-//const bodyParser = require('body-parser');
 
 const { google } = require('googleapis');
-const request = require('request');
 
 const app = express();
-// configure Pug
 app.set('view engine', 'pug');
 app.set('views', 'views');
 
@@ -111,15 +106,6 @@ fs.readFile('credentials.json', (err, content) => {
 	startServer(oAuth2Client);
 });
 
-//function authorize(oAuth2, request,response, callback) {
-//  // Check if we have previously stored a token.
-//	if (!request.session.token) {
-//		// display the authorization page
-//		response.render('auth', { authUrl: getAuthorizationUrl(oAuth2) });
-//	} else {
-//		callback();
-//	}
-//}
 function authorize(request, response,next) {
 	if (!request.isAuthenticated()) {
 		response.redirect('/drive/login');
@@ -128,26 +114,9 @@ function authorize(request, response,next) {
 	}
 }
 
-//function getAuthorizationUrl(oAuth2) {
-//	const authUrl = oAuth2.generateAuthUrl({
-//		access_type: 'offline',
-//		scope: SCOPES
-//	});
-//	console.log('Authorize this app by visiting this url:', authUrl);
-//	return authUrl;
-//}
-//function getAccessToken(oAuth2,code,callback) {
-//	oAuth2.getToken(code, (err, token) => {
-//		if (err) return console.error('Error retrieving access token', err);
-//		oAuth2.setCredentials(token);
-//		// store token to session
-//		callback(token);
-//	});
-//}
 
 
-
-function startServer(oAuth2) {
+function startServer() {
 	app.get('/', function (request, response) {
 		response.render('infopage.pug');
 	});
@@ -160,7 +129,7 @@ function startServer(oAuth2) {
 		successRedirect: '/join'
 	}));
 	app.get('/tweet', (request, response) => {
-		T.post('statuses/update', { status: request.query.TweetData }, function (err, data, response) { });
+		T.post('statuses/update', { status: request.query.TweetData });
 		response.redirect('/join');
 	});
 	app.get('/drive/login', passport.authenticate('google', {
@@ -224,9 +193,9 @@ function startServer(oAuth2) {
 				let semiphore = 0;
 				files.some((file) => {
 					semiphore++;
-					drive.listFiles(request.user, `mimeType = '${mimeType}' and '${file.id}' in parents and trashed = false`, (subFolders, error) => {
-						if (error) {
-							response.render('error.pug', { error });
+					drive.listFiles(request.user, `mimeType = '${mimeType}' and '${file.id}' in parents and trashed = false`, (subFolders, err) => {
+						if (err) {
+							response.render('error.pug', { error:err });
 							response.end();
 						} else {
 							file.hasSubDirectories = subFolders && subFolders.length !== 0;
