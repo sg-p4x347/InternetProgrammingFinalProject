@@ -130,7 +130,7 @@ function getFolderStructure(user, callback) {
 }
 function listFiles(user, query, callback, pageToken) {
 	let qs = {
-		pageSize: 1000,
+		pageSize: 100,
 		fields: 'nextPageToken, files(id, name, mimeType, parents)',
 		q: query
 	};
@@ -162,6 +162,26 @@ function listFiles(user, query, callback, pageToken) {
 		}
 	});
 }
+function getTreeNodeRecursive(user, files, fileIndex, mimeType, mimeMapping, semiphore, done) {
+	let file = files[fileIndex];
+
+	listFiles(user, `mimeType = '${mimeType}' and '${file.id}' in parents and trashed = false`, (subFolders, err) => {
+		if (err) {
+			done(err);
+		} else {
+			// determine which folders don't have any sub-folders
+			file.hasSubDirectories = subFolders && subFolders.length !== 0;
+			file.img = mimeMapping.icon;
+			if (++semiphore.count === files.length)
+			{done();}
+		}
+	});
+	setTimeout(() => {
+		if (++fileIndex < files.length) {
+			getTreeNodeRecursive(user, files, fileIndex, mimeType, mimeMapping, semiphore, done);
+		}
+	}, files.length * 2);
+}
 module.exports = {
 	File: File,
 	getFile: getFile,
@@ -170,5 +190,6 @@ module.exports = {
 	listFiles: listFiles,
 	getFilesInFolderById,
 	getMimeMapping: getMimeMapping,
-	getFilesInFolderByPath: getFilesInFolderByPath
+	getFilesInFolderByPath: getFilesInFolderByPath,
+	getTreeNodeRecursive: getTreeNodeRecursive
 };
