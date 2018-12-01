@@ -1,13 +1,12 @@
 'use strict';
 
-//Twitter setup stuff
+// Twitter setup stuff
 const Twit = require('twit');
-let passport = require('passport');
 let T = new Twit({
 	consumer_key: 'JgZkkpOMzKIpz37icpzyuXqt3',
 	consumer_secret: 'wB4wRET9rqrAlNNkJ8xkU8UJ851giK5H7d4Yv1EZcMmyqQaVFN',
 	access_token: '1064614241141997568-YrcDjQb0LcJHYvx3BkbP4WGhnaaP8C',
-	access_token_secret: 'XwGJL1YYyvo6FUzAoNnssloa0PFecNUgr9lBPnWGCRbW5',
+	access_token_secret: 'XwGJL1YYyvo6FUzAoNnssloa0PFecNUgr9lBPnWGCRbW5'
 });
 
 
@@ -23,6 +22,7 @@ https://developers.google.com/drive/api/v3/search-parameters
 
 */
 const fs = require('fs');
+const passport = require('passport');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');

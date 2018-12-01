@@ -81,15 +81,12 @@ function tweetFileName(TweetData, evt, self) {
 	const ajax = new XMLHttpRequest();
 	ajax.open('GET', url);
 
-	ajax.addEventListener('load', function () {
-//		parent.innerHTML += ajax.response;
-	});
-
 	ajax.send();
-	self.innerHTML = 'Tweeted!'
+	self.innerHTML = 'Tweeted!';
 }
 
 //Shut up eslint
 toggleTreeCollapse;
 treeNodeClick;
 itemClick;
+tweetFileName;
